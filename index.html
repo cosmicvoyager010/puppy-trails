@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Puppy Walk v2</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;background:#eef7ff;color:#2d1a0e}
+.container{max-width:520px;margin:auto;padding:20px}
+.card{background:#fff;border-radius:20px;padding:16px;margin:12px 0;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.puppy{text-align:center;font-size:90px;cursor:pointer}
+h1{text-align:center}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:#f7f7f7;border-radius:14px;padding:12px;text-align:center}
+button{border:none;border-radius:14px;padding:12px 16px;font-size:16px;cursor:pointer}
+.primary{width:100%;background:#ff7a3d;color:white}
+.dev{display:none}
+.badge{display:none;background:#ffd54f;padding:8px;border-radius:12px;text-align:center;font-weight:bold}
+.progress{height:12px;background:#ddd;border-radius:10px;overflow:hidden}
+.fill{height:100%;width:0%;background:#ff7a3d}
+.small{color:#666;font-size:14px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🐶 Puppy Walk v2</h1>
+
+<div id="testBadge" class="badge">🧪 TEST MODE ACTIVE</div>
+
+<div class="card">
+<div id="puppy" class="puppy">🐶</div>
+<div style="text-align:center">
+<h2 id="mood">😴 Sleepy</h2>
+<p class="small">Tap puppy 5 times to unlock developer mode.</p>
+</div>
+</div>
+
+<div class="card">
+<button class="primary" onclick="fakeSync()">🐾 Sync Adventure</button>
+<p class="small">Future Apple Shortcut integration point.</p>
+</div>
+
+<div class="card stats">
+<div class="stat"><strong id="steps">0</strong><br>Steps</div>
+<div class="stat"><strong id="walk">0.0</strong><br>Walk km</div>
+<div class="stat"><strong id="cycle">0.0</strong><br>Cycle km</div>
+<div class="stat"><strong id="adventure">0.0</strong><br>Adventure km</div>
+</div>
+</div>
+
+<div class="card">
+<h3>🌍 Adventure Progress</h3>
+<div class="progress"><div id="fill" class="fill"></div></div>
+<p id="next">Next discovery at 5 km</p>
+</div>
+
+<div class="card">
+<h3>🏆 Discoveries</h3>
+<ul id="discoveries"></ul>
+</div>
+
+<div id="devPanel" class="card dev">
+<h3>🧪 Developer Mode</h3>
+<button onclick="addSteps(1000)">+1000 Steps</button>
+<button onclick="addWalk(5)">+5 km Walk</button>
+<button onclick="addCycle(10)">+10 km Cycle</button>
+<button onclick="toggleTest()">Toggle Test Mode</button>
+<button onclick="resetTest()">Reset Test Data</button>
+</div>
+
+</div>
+
+<script>
+const milestones=[5,20,50,100,250];
+const names={5:"🌸 Flower Meadow",20:"🌲 Whispering Forest",50:"🌊 Hidden Lake",100:"⛰ Mountain Pass",250:"🌙 Moon Trail"};
+
+let taps=0;
+let testMode=false;
+
+let real=JSON.parse(localStorage.getItem("pw_real")||'{"steps":0,"walk":0,"cycle":0,"disc":[]}' );
+let test=JSON.parse(localStorage.getItem("pw_test")||'{"steps":0,"walk":0,"cycle":0,"disc":[]}' );
+
+function data(){return testMode?test:real}
+
+function save(){
+ localStorage.setItem("pw_real",JSON.stringify(real));
+ localStorage.setItem("pw_test",JSON.stringify(test));
+}
+
+function update(){
+ const d=data();
+ document.getElementById("steps").textContent=d.steps.toLocaleString();
+ document.getElementById("walk").textContent=d.walk.toFixed(1);
+ document.getElementById("cycle").textContent=d.cycle.toFixed(1);
+
+ const adv=d.walk+d.cycle;
+ document.getElementById("adventure").textContent=adv.toFixed(1);
+
+ let mood="😴 Sleepy";
+ if(adv>5) mood="😊 Happy";
+ if(adv>20) mood="🥳 Excited";
+ if(adv>100) mood="👑 Explorer";
+ document.getElementById("mood").textContent=mood;
+
+ milestones.forEach(m=>{
+   if(adv>=m && !d.disc.includes(m)) d.disc.push(m);
+ });
+
+ const ul=document.getElementById("discoveries");
+ ul.innerHTML="";
+ d.disc.sort((a,b)=>a-b).forEach(m=>{
+   const li=document.createElement("li");
+   li.textContent=names[m];
+   ul.appendChild(li);
+ });
+
+ let next=milestones.find(x=>adv<x);
+ if(next){
+   document.getElementById("next").textContent=`Next discovery at ${next} km`;
+   document.getElementById("fill").style.width=(adv/next*100)+"%";
+ }else{
+   document.getElementById("next").textContent="All discoveries unlocked!";
+   document.getElementById("fill").style.width="100%";
+ }
+
+ document.getElementById("testBadge").style.display=testMode?"block":"none";
+ save();
+}
+
+function addSteps(n){data().steps+=n;update()}
+function addWalk(k){data().walk+=k;update()}
+function addCycle(k){data().cycle+=k;update()}
+
+function toggleTest(){testMode=!testMode;update()}
+function resetTest(){test={steps:0,walk:0,cycle:0,disc:[]};update()}
+
+function fakeSync(){
+ alert("Future Apple Shortcut import goes here. For now use Developer Mode.");
+}
+
+document.getElementById("puppy").addEventListener("click",()=>{
+ taps++;
+ if(taps>=5){
+   document.getElementById("devPanel").style.display="block";
+ }
+});
+
+update();
+</script>
+</body>
+</html>
