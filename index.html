@@ -80,31 +80,169 @@
       <div class="puppy" id="puppy">🐶</div>
       <button class="primary" onclick="walk()">Take a walk</button>
     </div>
+ <!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Puppy Walk v2</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ff7a3d" />
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      background: #eef7ff;
+      color: #2d1a0e;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 16px;
+      margin: 12px 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+
+    .scene {
+      position: relative;
+      height: 180px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(#dff3ff, #f7fbff);
+    }
+
+    .ground {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 40px;
+      background: #d7f5d1;
+    }
+
+    .puppy {
+      position: absolute;
+      bottom: 35px;
+      left: 20px;
+      font-size: 70px;
+      cursor: pointer;
+      user-select: none;
+      transform: translateX(0);
+      transition: transform 0.45s cubic-bezier(.2,.9,.2,1);
+    }
+
+    .walking {
+      animation: bounce 0.35s infinite ease-in-out;
+    }
+
+    @keyframes bounce {
+      0% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-6px) scale(1.05); }
+      100% { transform: translateY(0px) scale(1); }
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.1s ease, opacity 0.2s ease;
+    }
+
+    button:active {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+
+    .primary {
+      width: 100%;
+      background: #ff7a3d;
+      color: white;
+    }
+
+    #installBtn {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff7a3d;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Puppy Walk 🐶</h1>
+
+    <div class="card">
+      <div class="scene">
+        <div class="ground"></div>
+        <div class="puppy" id="puppy">🐶</div>
+      </div>
+
+      <button class="primary" onclick="walk()">Take a walk</button>
+    </div>
   </div>
 
   <button id="installBtn">Install App</button>
 
   <script>
-    // Simple interaction
-    function walk() {
-      const p = document.getElementById("puppy");
-      p.textContent = "🐕💨";
-      setTimeout(() => p.textContent = "🐶", 800);
-    }
-
-    // Register Service Worker
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js")
-          .then(reg => console.log("SW registered:", reg.scope))
-          .catch(err => console.log("SW error:", err));
-      });
-    }
-
-    // Install prompt handling
-    let deferredPrompt;
+    const puppy = document.getElementById("puppy");
     const installBtn = document.getElementById("installBtn");
 
+    let position = 20;
+    let deferredPrompt;
+
+    function walk() {
+      puppy.classList.add("walking");
+
+      position += 50;
+
+      if (position > 320) position = 20;
+
+      puppy.style.transform = `translateX(${position}px)`;
+
+      setTimeout(() => {
+        puppy.classList.remove("walking");
+      }, 600);
+    }
+
+    puppy.addEventListener("click", () => {
+      puppy.style.transform += " scale(1.15)";
+      setTimeout(() => {
+        puppy.style.transform = `translateX(${position}px)`;
+      }, 120);
+    });
+
+    // PWA install
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       deferredPrompt = e;
@@ -113,17 +251,24 @@
 
     installBtn.addEventListener("click", async () => {
       if (!deferredPrompt) return;
+
       deferredPrompt.prompt();
-      const result = await deferredPrompt.userChoice;
-      console.log("Install result:", result.outcome);
+      await deferredPrompt.userChoice;
+
       deferredPrompt = null;
       installBtn.style.display = "none";
     });
 
     window.addEventListener("appinstalled", () => {
-      console.log("PWA installed");
       installBtn.style.display = "none";
     });
+
+    // Service worker
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js");
+      });
+    }
   </script>
 </body>
 </html>
