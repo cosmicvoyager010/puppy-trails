@@ -1,20 +1,21 @@
-{
-  "name": "Puppy Trails",
-  "short_name": "Puppy Trails",
-  "start_url": "/puppy-trails/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "icons": [
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
-}
+// state.js — single source of truth for the whole app.
+// Nothing else should update the UI directly; everything reads/writes this object.
+
+export const appState = {
+  puppy: {
+    mood: "happy",   // "happy" | "tired"
+    energy: 100,     // 0-100
+    bond: 0           // 0-100
+  },
+
+  walk: {
+    active: false,
+    steps: 0,
+    distance: 0       // meters (arbitrary unit for now)
+  },
+
+  world: {
+    region: "home",
+    mood: "CALM"       // CALM | BRIGHT | QUIET | MYSTERIOUS
+  }
+};
